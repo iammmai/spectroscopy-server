@@ -14,6 +14,14 @@ const SpectroscopyController = {
     await spec.save().catch((err) => (ctx.body = err));
     ctx.body = spec;
   },
+  update: async (ctx) => {
+    const _id = R.path(["params", "id"], ctx);
+    ctx.body = await SpectroscopyModel.findOneAndUpdate(
+      { _id },
+      R.path(["request", "body"], ctx),
+      { new: true }
+    );
+  },
 };
 
 export default SpectroscopyController;
