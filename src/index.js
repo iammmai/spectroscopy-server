@@ -20,4 +20,4 @@ app
   .use(router.routes())
   .use(router.allowedMethods());
 
-app.listen(8080);
+app.listen(process.env.PORT || 8080);
