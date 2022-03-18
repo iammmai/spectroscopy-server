@@ -6,6 +6,9 @@ const SpectroscopyController = {
     const _id = R.path(["params", "id"], ctx);
     ctx.body = await SpectroscopyModel.findOne({ _id });
   },
+  getAll: async (ctx) => {
+    ctx.body = await SpectroscopyModel.find({});
+  },
   create: async (ctx) => {
     const spec = new SpectroscopyModel({
       p1: R.path(["request", "body", "p1"], ctx),

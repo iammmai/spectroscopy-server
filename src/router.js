@@ -4,6 +4,7 @@ import Router from "@koa/router";
 const router = new Router();
 const spectroscopyRouter = new Router();
 
+spectroscopyRouter.get("/list", SpectroscopyController.getAll);
 spectroscopyRouter.get("/:id", SpectroscopyController.get);
 spectroscopyRouter.post("/:id", SpectroscopyController.update);
 spectroscopyRouter.post("/", SpectroscopyController.create);
