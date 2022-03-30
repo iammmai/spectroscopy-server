@@ -3,8 +3,8 @@ const Schema = mongoose.Schema;
 
 const SpectroscopySchema = new Schema(
   {
-    p1: String,
-    p2: String,
+    title: String,
+    description: String,
   },
   {
     timestamps: true,

@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import SpectroscopyModel from "./schema.js";
+import SpectroscopyModel from "./SpectroscopySchema.js";
 
 const SpectroscopyController = {
   get: async (ctx) => {
@@ -10,10 +10,7 @@ const SpectroscopyController = {
     ctx.body = await SpectroscopyModel.find({});
   },
   create: async (ctx) => {
-    const spec = new SpectroscopyModel({
-      p1: R.path(["request", "body", "p1"], ctx),
-      p2: R.path(["request", "body", "p2"], ctx),
-    });
+    const spec = new SpectroscopyModel(R.path(["request", "body"], ctx));
     await spec.save().catch((err) => (ctx.body = err));
     ctx.body = spec;
   },
