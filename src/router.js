@@ -17,6 +17,7 @@ spectroscopyRouter.post("/", SpectroscopyController.create);
 
 formulaRouter.post("/:id", FormulaController.update);
 formulaRouter.post("/", FormulaController.create);
+formulaRouter.delete("/:id", FormulaController.delete);
 
 router.use(
   "/spectroscopy",

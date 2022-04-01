@@ -36,6 +36,14 @@ const FormulaController = {
       { new: true }
     );
   },
+  delete: async (ctx) => {
+    try {
+      const _id = R.path(["params", "id"], ctx);
+      ctx.body = await FormulaModel.deleteOne({ _id });
+    } catch (error) {
+      ctx.body = error;
+    }
+  },
 };
 
 export default FormulaController;
