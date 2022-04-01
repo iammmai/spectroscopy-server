@@ -14,6 +14,7 @@ spectroscopyRouter.get(
 spectroscopyRouter.get("/:id", SpectroscopyController.get);
 spectroscopyRouter.post("/:id", SpectroscopyController.update);
 spectroscopyRouter.post("/", SpectroscopyController.create);
+spectroscopyRouter.delete("/:id", SpectroscopyController.delete);
 
 formulaRouter.post("/:id", FormulaController.update);
 formulaRouter.post("/", FormulaController.create);

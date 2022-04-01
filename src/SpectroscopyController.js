@@ -27,6 +27,7 @@ const SpectroscopyController = {
       );
       ctx.body = response;
     } catch (error) {
+      console.log(error);
       ctx.body = error;
     }
   },
@@ -51,6 +52,7 @@ const SpectroscopyController = {
       );
       ctx.body = spec;
     } catch (error) {
+      console.log(error);
       ctx.body = error;
     }
   },
@@ -63,6 +65,23 @@ const SpectroscopyController = {
         { new: true }
       );
     } catch (error) {
+      console.log(error);
+      ctx.body = error;
+    }
+  },
+  delete: async (ctx) => {
+    try {
+      const _id = R.path(["params", "id"], ctx);
+      const processes =
+        (await FormulaModel.find({ spectroscopyId: _id })) || [];
+      await Promise.all(
+        processes.map(async (process) => {
+          await FormulaController.delete({ params: { id: process._id } });
+        })
+      );
+      ctx.body = await SpectroscopyModel.deleteOne({ _id });
+    } catch (error) {
+      console.log(error);
       ctx.body = error;
     }
   },
