@@ -16,6 +16,7 @@ const FormulaController = {
     const spec = new FormulaModel({
       ccs,
       lts,
+      prefix,
       spectroscopyId,
     });
     await spec.save().catch((err) => (ctx.body = err));
