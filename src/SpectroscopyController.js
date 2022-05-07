@@ -3,6 +3,12 @@ import SpectroscopyModel from "./SpectroscopySchema.js";
 import FormulaModel from "./FormulaSchema.js";
 import FormulaController from "./FormulaController.js";
 import mongoose from "mongoose";
+import * as eqSpectro from "./eqfiddle-api.cjs";
+
+const spectroApi = eqSpectro.default;
+
+const findLTS = (stateKey) =>
+  R.pipe(R.find(R.propEq("prefix", R.head(stateKey))), R.prop("lts"));
 
 const SpectroscopyController = {
   get: async (ctx) => {
@@ -80,6 +86,37 @@ const SpectroscopyController = {
         })
       );
       ctx.body = await SpectroscopyModel.deleteOne({ _id });
+    } catch (error) {
+      console.log(error);
+      ctx.body = error;
+    }
+  },
+  compare: async (ctx) => {
+    try {
+      const left = R.path(["request", "query", "left"], ctx);
+      const right = R.path(["request", "query", "right"], ctx);
+      const spectroscopyId = R.path(["params", "id"], ctx);
+
+      const formulas = await FormulaController.getBySpectroscopyId({
+        params: { spectroscopyId },
+      });
+
+      const leftLTS = findLTS(left)(formulas);
+      const rightLTS = findLTS(right)(formulas);
+
+      const ltsSpec =
+        R.head(left) === R.head(right)
+          ? { lts: leftLTS }
+          : {
+              lts: {
+                ...leftLTS,
+                states: { ...leftLTS.states, ...rightLTS.states },
+              },
+            };
+
+      const lts = spectroApi.loadLTS(ltsSpec);
+      const spectroResult = spectroApi.performSpectroscopy(lts, left, right);
+      ctx.body = spectroResult;
     } catch (error) {
       console.log(error);
       ctx.body = error;

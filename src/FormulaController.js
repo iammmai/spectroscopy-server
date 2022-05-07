@@ -5,7 +5,9 @@ import { renameStates, transformToLTS } from "./ltsConversion.js";
 const FormulaController = {
   getBySpectroscopyId: async (ctx) => {
     const spectroscopyId = R.path(["params", "spectroscopyId"], ctx);
-    ctx.body = await FormulaModel.find({ spectroscopyId });
+    const result = await FormulaModel.find({ spectroscopyId });
+    ctx.body = result;
+    return result;
   },
   create: async (ctx) => {
     const ccs = R.path(["request", "body", "ccs"], ctx);
@@ -25,6 +27,7 @@ const FormulaController = {
   update: async (ctx) => {
     const _id = R.path(["params", "id"], ctx);
     const ccs = R.path(["request", "body", "ccs"], ctx);
+    // TODO: default prefix should be the one that is saved in the db
     const prefix = R.path(["request", "body", "prefix"], ctx);
 
     ctx.body = await FormulaModel.findOneAndUpdate(
