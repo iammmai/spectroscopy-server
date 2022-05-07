@@ -97,6 +97,9 @@ const SpectroscopyController = {
       const right = R.path(["request", "query", "right"], ctx);
       const spectroscopyId = R.path(["params", "id"], ctx);
 
+      if (!left || !right) {
+        throw new Error("Missing states to compare");
+      }
       const formulas = await FormulaController.getBySpectroscopyId({
         params: { spectroscopyId },
       });
@@ -116,10 +119,15 @@ const SpectroscopyController = {
 
       const lts = spectroApi.loadLTS(ltsSpec);
       const spectroResult = spectroApi.performSpectroscopy(lts, left, right);
-      ctx.body = spectroResult;
+      ctx.body = {
+        leftLTS,
+        rightLTS,
+        result: spectroResult,
+      };
     } catch (error) {
       console.log(error);
       ctx.body = error;
+      ctx.status = 500;
     }
   },
 };

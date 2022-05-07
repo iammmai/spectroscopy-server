@@ -12,7 +12,7 @@ spectroscopyRouter.get(
   FormulaController.getBySpectroscopyId
 );
 spectroscopyRouter.get("/:id", SpectroscopyController.get);
-spectroscopyRouter.post("/:id/compare", SpectroscopyController.compare);
+spectroscopyRouter.get("/:id/compare", SpectroscopyController.compare);
 spectroscopyRouter.post("/:id", SpectroscopyController.update);
 spectroscopyRouter.post("/", SpectroscopyController.create);
 spectroscopyRouter.delete("/:id", SpectroscopyController.delete);
