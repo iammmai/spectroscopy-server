@@ -10,34 +10,46 @@ const FormulaController = {
     return result;
   },
   create: async (ctx) => {
-    const ccs = R.path(["request", "body", "ccs"], ctx);
-    const prefix = R.path(["request", "body", "prefix"], ctx);
-    const spectroscopyId = R.path(["request", "body", "spectroscopyId"], ctx);
-    const lts = renameStates(transformToLTS(ccs), prefix);
+    try {
+      const ccs = R.path(["request", "body", "ccs"], ctx);
+      const prefix = R.path(["request", "body", "prefix"], ctx);
+      const spectroscopyId = R.path(["request", "body", "spectroscopyId"], ctx);
+      const lts = renameStates(transformToLTS(ccs), prefix);
 
-    const spec = new FormulaModel({
-      ccs,
-      lts,
-      prefix,
-      spectroscopyId,
-    });
-    await spec.save().catch((err) => (ctx.body = err));
-    ctx.body = spec;
+      const spec = new FormulaModel({
+        ccs,
+        lts,
+        prefix,
+        spectroscopyId,
+      });
+      await spec.save().catch((err) => (ctx.body = err));
+      ctx.body = spec;
+    } catch (err) {
+      console.error(err);
+      ctx.status = 500;
+      ctx.body = err;
+      throw err;
+    }
   },
   update: async (ctx) => {
-    const _id = R.path(["params", "id"], ctx);
-    const ccs = R.path(["request", "body", "ccs"], ctx);
-    // TODO: default prefix should be the one that is saved in the db
-    const prefix = R.path(["request", "body", "prefix"], ctx);
+    try {
+      const _id = R.path(["params", "id"], ctx);
+      const ccs = R.path(["request", "body", "ccs"], ctx);
+      // TODO: default prefix should be the one that is saved in the db
+      const prefix = R.path(["request", "body", "prefix"], ctx);
 
-    ctx.body = await FormulaModel.findOneAndUpdate(
-      { _id },
-      {
-        ...R.path(["request", "body"], ctx),
-        ...(ccs ? { lts: renameStates(transformToLTS(ccs), prefix) } : {}),
-      },
-      { new: true }
-    );
+      ctx.body = await FormulaModel.findOneAndUpdate(
+        { _id },
+        {
+          ...R.path(["request", "body"], ctx),
+          ...(ccs ? { lts: renameStates(transformToLTS(ccs), prefix) } : {}),
+        },
+        { new: true }
+      );
+    } catch (err) {
+      console.error(err);
+      ctx.body = err;
+    }
   },
   delete: async (ctx) => {
     try {

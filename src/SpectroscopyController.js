@@ -34,6 +34,7 @@ const SpectroscopyController = {
       ctx.body = response;
     } catch (error) {
       console.log(error);
+      ctx.status = 500;
       ctx.body = error;
     }
   },
@@ -43,22 +44,25 @@ const SpectroscopyController = {
         R.path(["request", "body", "spectroscopy"], ctx)
       );
       await spec.save().catch((err) => (ctx.body = err));
-      R.path(["request", "body", "processes"], ctx).forEach(
-        async ({ ccs, prefix }) => {
-          await FormulaController.create({
-            request: {
-              body: {
-                ccs,
-                prefix,
-                spectroscopyId: spec._id,
+      await Promise.all(
+        R.path(["request", "body", "processes"], ctx).map(
+          async ({ ccs, prefix }) => {
+            await FormulaController.create({
+              request: {
+                body: {
+                  ccs,
+                  prefix,
+                  spectroscopyId: spec._id,
+                },
               },
-            },
-          });
-        }
+            });
+          }
+        )
       );
       ctx.body = spec;
     } catch (error) {
       console.log(error);
+      ctx.status = 500;
       ctx.body = error;
     }
   },
@@ -72,6 +76,7 @@ const SpectroscopyController = {
       );
     } catch (error) {
       console.log(error);
+      ctx.status = 500;
       ctx.body = error;
     }
   },
