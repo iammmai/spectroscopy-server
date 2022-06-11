@@ -10,6 +10,9 @@ const spectroApi = eqSpectro.default;
 const findLTS = (stateKey) =>
   R.pipe(R.find(R.propEq("prefix", R.head(stateKey))), R.prop("lts"));
 
+const pickLTS = (prefix) =>
+  R.find((lts) => R.head(prefix) === R.head(lts.initialState));
+
 const SpectroscopyController = {
   get: async (ctx) => {
     try {
@@ -123,11 +126,38 @@ const SpectroscopyController = {
             };
 
       const lts = spectroApi.loadLTS(ltsSpec);
-      const spectroResult = spectroApi.performSpectroscopy(lts, left, right);
+      const result = spectroApi.performSpectroscopy(lts, left, right);
+
+      const sorted = R.sort((a, b) => {
+        const leftProp = R.prop("left");
+        if ([left, right].includes(leftProp(a))) {
+          return -Infinity;
+        }
+        return (leftProp(a) || "").length - (leftProp(b) || "").length;
+      }, result);
+
+      const ltsData = [leftLTS, rightLTS];
+
       ctx.body = {
         leftLTS,
         rightLTS,
-        result: spectroResult,
+        result: sorted.map((resultItem) => {
+          return {
+            ...resultItem,
+            left: {
+              stateKey: resultItem.left,
+              ccs: R.path(["states", resultItem.left, "ccs"])(
+                pickLTS(R.head(resultItem.left))(ltsData)
+              ),
+            },
+            right: {
+              stateKey: resultItem.right,
+              ccs: R.path(["states", resultItem.right, "ccs"])(
+                pickLTS(R.head(resultItem.right))(ltsData)
+              ),
+            },
+          };
+        }),
       };
     } catch (error) {
       console.log(error);
