@@ -7,8 +7,11 @@ import * as eqSpectro from "./eqfiddle-api.cjs";
 
 const spectroApi = eqSpectro.default;
 
-const findLTS = (stateKey) =>
-  R.pipe(R.find(R.propEq("prefix", R.head(stateKey))), R.prop("lts"));
+const findLTS = (stateKey) => {
+  const hasSamePrefix = (stateKey) => (formula) =>
+    R.head(formula.processName) === R.head(stateKey);
+  return R.pipe(R.find(hasSamePrefix(stateKey)), R.prop("lts"));
+};
 
 const pickLTS = (prefix) =>
   R.find((lts) => R.head(prefix) === R.head(lts.initialState));
@@ -49,12 +52,12 @@ const SpectroscopyController = {
       await spec.save().catch((err) => (ctx.body = err));
       await Promise.all(
         R.path(["request", "body", "processes"], ctx).map(
-          async ({ ccs, prefix }) => {
+          async ({ ccs, processName }) => {
             await FormulaController.create({
               request: {
                 body: {
                   ccs,
-                  prefix,
+                  processName,
                   spectroscopyId: spec._id,
                 },
               },

@@ -8,7 +8,7 @@ const LTSSchema = new Schema({
 
 const FormulaSchema = new Schema(
   {
-    prefix: String,
+    processName: String,
     ccs: String,
     lts: LTSSchema,
     spectroscopyId: { type: Schema.Types.ObjectId, required: true },
