@@ -1,7 +1,7 @@
 import { parser } from "@pseuco/ccs-interpreter";
 import * as R from "ramda";
 
-export const transformToLTS = (ccs, processName = "P") => {
+export const transformToLTS = (ccs, processName = "P0") => {
   let initialState = parser.parse(ccs);
   return {
     initialState: initialState.toString().replace("\n", ""),
@@ -23,10 +23,13 @@ const exploreStates = (acc, states, processName) => {
     return {
       ...prev,
       [stateKey]: {
-        transitions: currentState.getPossibleSteps().map((step) => ({
-          label: step.toString(),
-          target: step.perform().toString(),
-        })),
+        transitions: currentState.getPossibleSteps().map((step) => {
+          step.copyOnPerform = true;
+          return {
+            label: step.toString(),
+            target: step.perform().toString(),
+          };
+        }),
       },
     };
   }, {});
@@ -51,9 +54,10 @@ const exploreStates = (acc, states, processName) => {
     newStates,
     R.chain(
       (state) =>
-        state
-          .getPossibleSteps()
-          .map((step) => parser.parse(step.perform().toString())),
+        state.getPossibleSteps().map((step) => {
+          step.copyOnPerform = true;
+          return parser.parse(step.perform().toString());
+        }),
       statesCopy
     ),
     processName
