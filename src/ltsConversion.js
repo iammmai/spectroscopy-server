@@ -18,7 +18,6 @@ export const transformToLTS = (ccs, processName = "P0", relatedProcesses) => {
     ...relatedDefinitions,
     ...recursiveDefinitions,
   ]);
-  console.log("processDef", processDefinitions);
   return {
     initialState: initialState.toString().replace("\n", ""),
     states: exploreStates({}, [initialState], processName, processDefinitions),
@@ -71,7 +70,6 @@ const exploreStates = (
       );
     })(statesCopy)
   ) {
-    console.log(newStates);
     return newStates;
   }
 
