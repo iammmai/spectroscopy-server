@@ -18,6 +18,7 @@ export const transformToLTS = (ccs, processName = "P0", relatedProcesses) => {
     ...relatedDefinitions,
     ...recursiveDefinitions,
   ]);
+  console.log("processDef", processDefinitions);
   return {
     initialState: initialState.toString().replace("\n", ""),
     states: exploreStates({}, [initialState], processName, processDefinitions),
@@ -116,6 +117,15 @@ export const renameStates = (lts, processName = "P0", relatedProcesses) => {
   const newStates = Object.entries(newStateNames).reduce(
     (acc, [oldKey, newKey]) => {
       if (oldKey === processName) return acc;
+      if (relatedProcessNames.includes(oldKey)) {
+        return {
+          ...acc,
+          ...R.pipe(
+            R.find(R.propEq("processName", oldKey)),
+            R.path(["lts", "states"])
+          )(relatedProcesses),
+        };
+      }
       return {
         ...acc,
         [newKey]: {
