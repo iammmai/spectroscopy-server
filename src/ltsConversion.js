@@ -1,29 +1,44 @@
 import { parser } from "@pseuco/ccs-interpreter";
 import * as R from "ramda";
 
+const transformRecursiveCCS = (ccs, processName) => {
+  return `${processName} := ${ccs} \n ${processName}`;
+};
+
 export const transformToLTS = (ccs, processName = "P0") => {
-  let initialState = parser.parse(ccs);
+  const isRecursive = new RegExp(processName, "g").test(ccs);
+  console.log(isRecursive, transformRecursiveCCS(ccs, processName));
+  let initialState = parser.parse(
+    isRecursive ? transformRecursiveCCS(ccs, processName) : ccs
+  );
+  const processDefinitions = isRecursive ? [`${processName} := ${ccs}`] : [];
   return {
     initialState: initialState.toString().replace("\n", ""),
-    states: exploreStates({}, [initialState], processName),
+    states: exploreStates({}, [initialState], processName, processDefinitions),
   };
 };
 
 // processName is passed in order to regognize a recursive ccs
-const exploreStates = (acc, states, processName) => {
+const exploreStates = (
+  acc,
+  states,
+  processName,
+  processDefinitions,
+  numCalls = 0
+) => {
   //getPossibleSteps mutates state if there is | - operator! that is why make a deep clone first
   const statesCopy = R.clone(states);
   const exploredStates = states.reduce((prev, currentState) => {
     const stateKey = currentState.toString().replace("\n", "");
 
     // detect recursion
-    if (stateKey === processName) {
+    if (stateKey === processName || Object.keys(acc).includes(stateKey)) {
       return prev;
     }
     return {
       ...prev,
       [stateKey]: {
-        transitions: currentState.getPossibleSteps().map((step) => {
+        transitions: currentState.getPossibleSteps(true).map((step) => {
           step.copyOnPerform = true;
           return {
             label: step.toString(),
@@ -41,9 +56,11 @@ const exploreStates = (acc, states, processName) => {
 
   if (
     R.all((state) => {
+      const stateString = state.toString();
       return (
-        !!state.toString().match(/^(0\|)*0$/gm) ||
-        state.toString() === processName
+        !!stateString.match(/^(0\|)*0$/gm) ||
+        stateString === processName ||
+        numCalls > 10
       );
     })(statesCopy)
   ) {
@@ -54,13 +71,14 @@ const exploreStates = (acc, states, processName) => {
     newStates,
     R.chain(
       (state) =>
-        state.getPossibleSteps().map((step) => {
-          step.copyOnPerform = true;
-          return parser.parse(step.perform().toString());
+        state.getPossibleSteps(true).map((step) => {
+          return step.perform();
         }),
       statesCopy
     ),
-    processName
+    processName,
+    processDefinitions,
+    numCalls + 1
   );
 };
 
