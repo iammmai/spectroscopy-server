@@ -14,7 +14,14 @@ const FormulaController = {
       const ccs = R.path(["request", "body", "ccs"], ctx);
       const processName = R.path(["request", "body", "processName"], ctx);
       const spectroscopyId = R.path(["request", "body", "spectroscopyId"], ctx);
-      const lts = renameStates(transformToLTS(ccs, processName), processName);
+      const relatedProcesses =
+        R.path(["request", "body", "relatedProcesses"], ctx) ||
+        (await FormulaModel.find({ spectroscopyId }));
+      const lts = renameStates(
+        transformToLTS(ccs, processName, relatedProcesses),
+        processName,
+        relatedProcesses
+      );
 
       const spec = new FormulaModel({
         ccs,
@@ -38,12 +45,23 @@ const FormulaController = {
       // TODO: default prefix should be the one that is saved in the db
       const processName = R.path(["request", "body", "processName"], ctx);
 
+      const formula = await FormulaModel.findOne({ _id });
+      const relatedProcesses = await FormulaModel.find({
+        spectroscopyId: formula.spectroscopyId,
+      });
+
       ctx.body = await FormulaModel.findOneAndUpdate(
         { _id },
         {
           ...R.path(["request", "body"], ctx),
           ...(ccs
-            ? { lts: renameStates(transformToLTS(ccs), processName) }
+            ? {
+                lts: renameStates(
+                  transformToLTS(ccs, processName, relatedProcesses),
+                  processName,
+                  relatedProcesses
+                ),
+              }
             : {}),
         },
         { new: true }

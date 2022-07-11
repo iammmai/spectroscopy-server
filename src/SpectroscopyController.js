@@ -50,6 +50,7 @@ const SpectroscopyController = {
         R.path(["request", "body", "spectroscopy"], ctx)
       );
       await spec.save().catch((err) => (ctx.body = err));
+      const relatedProcesses = R.path(["request", "body", "processes"], ctx);
       await Promise.all(
         R.path(["request", "body", "processes"], ctx).map(
           async ({ ccs, processName }) => {
@@ -59,6 +60,7 @@ const SpectroscopyController = {
                   ccs,
                   processName,
                   spectroscopyId: spec._id,
+                  relatedProcesses,
                 },
               },
             });

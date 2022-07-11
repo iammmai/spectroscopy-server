@@ -5,13 +5,19 @@ const transformRecursiveCCS = (ccs, processName) => {
   return `${processName} := ${ccs} \n ${processName}`;
 };
 
-export const transformToLTS = (ccs, processName = "P0") => {
+export const transformToLTS = (ccs, processName = "P0", relatedProcesses) => {
   const isRecursive = new RegExp(processName, "g").test(ccs);
-  console.log(isRecursive, transformRecursiveCCS(ccs, processName));
   let initialState = parser.parse(
     isRecursive ? transformRecursiveCCS(ccs, processName) : ccs
   );
-  const processDefinitions = isRecursive ? [`${processName} := ${ccs}`] : [];
+  const recursiveDefinitions = isRecursive ? [`${processName} := ${ccs}`] : [];
+  const relatedDefinitions = relatedProcesses.map(
+    (process) => `${process.processName}:= ${process.ccs}`
+  );
+  const processDefinitions = R.join("\n", [
+    ...relatedDefinitions,
+    ...recursiveDefinitions,
+  ]);
   return {
     initialState: initialState.toString().replace("\n", ""),
     states: exploreStates({}, [initialState], processName, processDefinitions),
@@ -64,6 +70,7 @@ const exploreStates = (
       );
     })(statesCopy)
   ) {
+    console.log(newStates);
     return newStates;
   }
 
@@ -82,17 +89,26 @@ const exploreStates = (
   );
 };
 
-export const renameStates = (lts, processName = "P0") => {
+export const renameStates = (lts, processName = "P0", relatedProcesses) => {
+  console.log("related", relatedProcesses);
+  const relatedProcessNames = relatedProcesses.map(
+    (process) => process.processName !== processName && process.processName
+  );
   const prefix = R.head(processName);
-  let newStateNames = Object.keys(lts.states)
-    .sort((a, b) => b.length - a.length)
-    .reduce(
-      (acc, key) => ({
-        ...acc,
-        [key]: `${prefix}${Object.values(acc).length}`,
-      }),
-      {}
-    );
+  let sorted = Object.keys(lts.states).sort((a, b) => {
+    if (relatedProcessNames.includes(b)) return -Infinity;
+    return b.length - a.length;
+  });
+
+  let newStateNames = sorted.reduce(
+    (acc, key) => ({
+      ...acc,
+      ...([...relatedProcessNames, "0"].includes(key)
+        ? { [key]: key }
+        : { [key]: `${prefix}${Object.values(acc).length}` }),
+    }),
+    {}
+  );
 
   // add renaming incase of recursion
   newStateNames = { ...newStateNames, [processName]: processName };
