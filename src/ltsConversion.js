@@ -25,7 +25,7 @@ export const transformToLTS = (ccs, processName = "P0", relatedProcesses) => {
 };
 
 // processName is passed in order to regognize a recursive ccs
-const exploreStates = (acc, states, processName, numCalls = 0) => {
+const exploreStates = (acc, states, processName) => {
   //getPossibleSteps mutates state if there is | - operator! that is why make a deep clone first
   const statesCopy = R.clone(states);
   const exploredStates = states.reduce((prev, currentState) => {
@@ -60,7 +60,7 @@ const exploreStates = (acc, states, processName, numCalls = 0) => {
       return (
         !!stateString.match(/^(0\|)*0$/gm) ||
         stateString === processName ||
-        numCalls > 10
+        Object.values(acc).length === Object.values(newStates).length //no new states explored => recursive definition
       );
     })(statesCopy)
   ) {
@@ -76,16 +76,11 @@ const exploreStates = (acc, states, processName, numCalls = 0) => {
         }),
       statesCopy
     ),
-    processName,
-    numCalls + 1
+    processName
   );
 };
 
-export const renameStates = (
-  lts,
-  processName = "P0",
-  processCCS
-) => {
+export const renameStates = (lts, processName = "P0", processCCS) => {
   const prefix = R.head(processName);
   let sorted = Object.keys(lts.states).sort((a, b) => {
     return b.length - a.length;
