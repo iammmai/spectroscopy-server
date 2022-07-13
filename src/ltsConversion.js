@@ -84,24 +84,17 @@ const exploreStates = (acc, states, processName, numCalls = 0) => {
 export const renameStates = (
   lts,
   processName = "P0",
-  relatedProcesses,
   processCCS
 ) => {
-  const relatedProcessNames = relatedProcesses.map(
-    (process) => process.processName !== processName && process.processName
-  );
   const prefix = R.head(processName);
   let sorted = Object.keys(lts.states).sort((a, b) => {
-    if (relatedProcessNames.includes(b)) return -Infinity;
     return b.length - a.length;
   });
 
   let newStateNames = sorted.reduce(
     (acc, key) => ({
       ...acc,
-      ...([...relatedProcessNames, "0"].includes(key)
-        ? { [key]: key }
-        : { [key]: `${prefix}${Object.values(acc).length}` }),
+      [key]: `${prefix}${Object.values(acc).length}`,
     }),
     {}
   );
@@ -112,15 +105,6 @@ export const renameStates = (
   const newStates = Object.entries(newStateNames).reduce(
     (acc, [oldKey, newKey]) => {
       if (oldKey === processName) return acc;
-      if (relatedProcessNames.includes(oldKey)) {
-        return {
-          ...acc,
-          ...R.pipe(
-            R.find(R.propEq("processName", oldKey)),
-            R.path(["lts", "states"])
-          )(relatedProcesses),
-        };
-      }
       return {
         ...acc,
         [newKey]: {
