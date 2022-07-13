@@ -25,7 +25,7 @@ export const transformToLTS = (ccs, processName = "P0", relatedProcesses) => {
 };
 
 // processName is passed in order to regognize a recursive ccs
-const exploreStates = (acc, states, processName) => {
+const exploreStates = async (acc, states, processName) => {
   //getPossibleSteps mutates state if there is | - operator! that is why make a deep clone first
   const statesCopy = R.clone(states);
   const exploredStates = states.reduce((prev, currentState) => {
