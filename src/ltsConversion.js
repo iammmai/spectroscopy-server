@@ -1,15 +1,8 @@
 import { parser } from "@pseuco/ccs-interpreter";
 import * as R from "ramda";
 
-const transformRecursiveCCS = (ccs, processName) => {
-  return `${processName} := ${ccs} \n ${processName}`;
-};
-
 export const transformToLTS = (ccs, processName = "P0", relatedProcesses) => {
   const isRecursive = new RegExp(processName, "g").test(ccs);
-  let initialState = parser.parse(
-    isRecursive ? transformRecursiveCCS(ccs, processName) : ccs
-  );
   const recursiveDefinitions = isRecursive ? [`${processName} := ${ccs}`] : [];
   const relatedDefinitions = relatedProcesses.map(
     (process) => `${process.processName}:= ${process.ccs}`
@@ -18,20 +11,21 @@ export const transformToLTS = (ccs, processName = "P0", relatedProcesses) => {
     ...relatedDefinitions,
     ...recursiveDefinitions,
   ]);
+
+  let initialState = parser.parse(
+    isRecursive
+      ? `${processDefinitions}\n${processName}`
+      : `${processDefinitions}\n${ccs}`
+  );
+
   return {
     initialState: initialState.toString().replace("\n", ""),
-    states: exploreStates({}, [initialState], processName, processDefinitions),
+    states: exploreStates({}, [initialState], processName),
   };
 };
 
 // processName is passed in order to regognize a recursive ccs
-const exploreStates = (
-  acc,
-  states,
-  processName,
-  processDefinitions,
-  numCalls = 0
-) => {
+const exploreStates = (acc, states, processName, numCalls = 0) => {
   //getPossibleSteps mutates state if there is | - operator! that is why make a deep clone first
   const statesCopy = R.clone(states);
   const exploredStates = states.reduce((prev, currentState) => {
@@ -83,13 +77,16 @@ const exploreStates = (
       statesCopy
     ),
     processName,
-    processDefinitions,
     numCalls + 1
   );
 };
 
-export const renameStates = (lts, processName = "P0", relatedProcesses) => {
-  console.log("related", relatedProcesses);
+export const renameStates = (
+  lts,
+  processName = "P0",
+  relatedProcesses,
+  processCCS
+) => {
   const relatedProcessNames = relatedProcesses.map(
     (process) => process.processName !== processName && process.processName
   );
@@ -128,7 +125,10 @@ export const renameStates = (lts, processName = "P0", relatedProcesses) => {
         ...acc,
         [newKey]: {
           ...lts.states[oldKey],
-          ccs: oldKey,
+          ccs:
+            newKey === processName
+              ? parser.parse(processCCS).toString().replace("\n", "")
+              : oldKey,
           transitions: lts.states[oldKey].transitions?.map(
             ({ label, target }) => ({
               label,

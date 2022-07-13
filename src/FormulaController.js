@@ -20,7 +20,8 @@ const FormulaController = {
       const lts = renameStates(
         transformToLTS(ccs, processName, relatedProcesses),
         processName,
-        relatedProcesses
+        relatedProcesses,
+        ccs
       );
 
       const spec = new FormulaModel({
@@ -59,7 +60,8 @@ const FormulaController = {
                 lts: renameStates(
                   transformToLTS(ccs, processName, relatedProcesses),
                   processName,
-                  relatedProcesses
+                  relatedProcesses,
+                  ccs
                 ),
               }
             : {}),
