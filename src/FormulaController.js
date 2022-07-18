@@ -1,7 +1,6 @@
 import * as R from "ramda";
 import FormulaModel from "./FormulaSchema.js";
 import { renameStates, transformToLTS } from "./ltsConversion.js";
-import { timeout } from "./utils.js";
 
 const FormulaController = {
   getBySpectroscopyId: async (ctx) => {
@@ -19,11 +18,11 @@ const FormulaController = {
         R.path(["request", "body", "relatedProcesses"], ctx) ||
         (await FormulaModel.find({ spectroscopyId }));
 
-      const rawLTS = await timeout(
+      const lts = renameStates(
         transformToLTS(ccs, processName, relatedProcesses),
-        10000
+        processName,
+        ccs
       );
-      const lts = renameStates(rawLTS, processName, ccs);
 
       const spec = new FormulaModel({
         ccs,
@@ -34,9 +33,9 @@ const FormulaController = {
       await spec.save().catch((err) => (ctx.body = err));
       ctx.body = spec;
     } catch (err) {
-      console.error(err);
-      ctx.status = 500;
+      console.error("ERRRRRRRRR", err);
       ctx.body = err;
+      ctx.status = 500;
       throw err;
     }
   },

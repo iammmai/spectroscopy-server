@@ -1,7 +1,11 @@
 import { parser } from "@pseuco/ccs-interpreter";
 import * as R from "ramda";
 
-export const transformToLTS = (ccs, processName = "P0", relatedProcesses) => {
+export const transformToLTS = (
+  ccs,
+  processName = "P0",
+  relatedProcesses = []
+) => {
   const isRecursive = new RegExp(processName, "g").test(ccs);
   const recursiveDefinitions = isRecursive ? [`${processName} := ${ccs}`] : [];
   const relatedDefinitions = relatedProcesses.map(
@@ -25,7 +29,7 @@ export const transformToLTS = (ccs, processName = "P0", relatedProcesses) => {
 };
 
 // processName is passed in order to regognize a recursive ccs
-const exploreStates = async (acc, states, processName) => {
+const exploreStates = (acc, states, processName) => {
   //getPossibleSteps mutates state if there is | - operator! that is why make a deep clone first
   const statesCopy = R.clone(states);
   const exploredStates = states.reduce((prev, currentState) => {

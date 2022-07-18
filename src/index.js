@@ -16,6 +16,17 @@ mongoose.connection.on("error", console.error);
 const app = new Koa();
 app
   .use(cors({ credentials: true }))
+  .use(async (ctx, next) => {
+    try {
+      await next();
+    } catch (err) {
+      // will only respond with JSON
+      ctx.status = err.statusCode || err.status || 500;
+      ctx.body = {
+        message: err.message,
+      };
+    }
+  })
   .use(bodyParser())
   .use(router.routes())
   .use(router.allowedMethods());
