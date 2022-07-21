@@ -67,6 +67,19 @@ const FormulaController = {
         },
         { new: true }
       );
+      // related processes also need to be updated if they contain a reference to this process
+      await Promise.all(
+        relatedProcesses.map(async (process) => {
+          if (process.ccs.includes(processName)) {
+            return FormulaController.update({
+              params: { id: process._id },
+              request: {
+                body: { ccs: process.ccs, processName: process.processName },
+              },
+            });
+          }
+        })
+      );
     } catch (err) {
       console.error(err);
       ctx.body = err;

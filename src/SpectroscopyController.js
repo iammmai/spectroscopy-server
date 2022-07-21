@@ -95,7 +95,9 @@ const SpectroscopyController = {
         (await FormulaModel.find({ spectroscopyId: _id })) || [];
       await Promise.all(
         processes.map(async (process) => {
-          await FormulaController.delete({ params: { id: process._id } });
+          return await FormulaController.delete({
+            params: { id: process._id },
+          });
         })
       );
       ctx.body = await SpectroscopyModel.deleteOne({ _id });
